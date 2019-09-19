@@ -3,49 +3,62 @@ from matplotlib import pyplot as plt
 from matplotlib.axes import Axes
 from matplotlib.collections import PolyCollection
 from matplotlib.figure import Figure
+from matplotlib.patches import Rectangle
 from mpl_toolkits.mplot3d import Axes3D
 from mpl_toolkits.mplot3d.art3d import Poly3DCollection
 from stl import Mesh
 
-# Create a new plot
-figure = plt.figure()
-axes = Axes3D(figure)
+
+def get_limit(mesh, column, scale=.1):
+    min_val = np.hstack((mesh.v0[:, column].min(), mesh.v1[:, column].min(), mesh.v2[:, column].min())).min()
+    max_val = np.hstack((mesh.v0[:, column].max(), mesh.v1[:, column].max(), mesh.v2[:, column].max())).max()
+
+    percent = (max_val - min_val) * scale
+    min_val -= percent
+    max_val += percent
+
+    return max_val, min_val
+
+
+def get_2d_bounding_box(mesh):
+    x, y, z = get_limit(mesh, 0, 0), get_limit(mesh, 1, 0), get_limit(mesh, 2, 0)
+
+    x_min = x[1]
+    y_min = y[1]
+
+    x_width = x[0] - x[1]
+    y_width = y[0] - y[1]
+
+    return x_min, x_width, y_min, y_width
+
+
+def get_2d_box(mesh):
+    x, width, y, height = get_2d_bounding_box(mesh)
+
+    rect = Rectangle((x, y), width, height)
+    rect.set_edgecolor('red')
+    rect.set_facecolor('none')
+
+    return rect
+
 
 # Load the STL files and add the vectors to the plot
 your_mesh = Mesh.from_file('Body Cap.stl')
+
+# Create a new plot
+figure = plt.figure()
+axes: Axes3D = Axes3D(figure)
 
 poly = Poly3DCollection(your_mesh.vectors)
 poly.set_edgecolor('black')
 axes.add_collection3d(poly)
 
-min_x = np.hstack((your_mesh.v0[:, 0].min(), your_mesh.v1[:, 0].min(), your_mesh.v2[:, 0].min())).min()
-max_x = np.hstack((your_mesh.v0[:, 0].max(), your_mesh.v1[:, 0].max(), your_mesh.v2[:, 0].max())).max()
-
-proportion = .1
-
-percent = (max_x - min_x) * proportion
-min_x -= percent
-max_x += percent
-
-min_y = np.hstack((your_mesh.v0[:, 1].min(), your_mesh.v1[:, 1].min(), your_mesh.v2[:, 1].min())).min()
-max_y = np.hstack((your_mesh.v0[:, 1].max(), your_mesh.v1[:, 1].max(), your_mesh.v2[:, 1].max())).max()
-
-percent = (max_y - min_y) * proportion
-min_y -= percent
-max_y += percent
-
-min_z = np.hstack((your_mesh.v0[:, 2].min(), your_mesh.v1[:, 2].min(), your_mesh.v2[:, 2].min())).min()
-max_z = np.hstack((your_mesh.v0[:, 2].max(), your_mesh.v1[:, 2].max(), your_mesh.v2[:, 2].max())).max()
-
-percent = (max_y - min_y) * proportion
-min_z -= percent
-max_z += percent
+x_lim, y_lim, z_lim = get_limit(your_mesh, 0), get_limit(your_mesh, 1), get_limit(your_mesh, 2)
 
 # Auto scale to the mesh size
-axes.set_xlim(min_x, max_x)
-axes.set_ylim(min_y, max_y)
-axes.set_zlim(min_z, max_z)
-
+axes.set_xlim(*x_lim)
+axes.set_ylim(*y_lim)
+axes.set_zlim(*z_lim)
 
 out = np.array(list(zip(your_mesh.v0[:, :2], your_mesh.v1[:, :2], your_mesh.v2[:, :2])))
 
@@ -57,8 +70,10 @@ poly = PolyCollection(out)
 poly.set_edgecolor('black')
 
 axes.add_collection(poly)
-axes.set_xlim(min_x, max_x)
-axes.set_ylim(min_y, max_y)
+axes.add_patch(get_2d_box(your_mesh))
+
+axes.set_xlim(*x_lim)
+axes.set_ylim(*y_lim)
 
 # Show the plot to the screen
 plt.show()
