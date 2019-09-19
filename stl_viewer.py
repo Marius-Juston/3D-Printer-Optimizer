@@ -72,8 +72,8 @@ poly.set_edgecolor('black')
 axes.add_collection(poly)
 axes.add_patch(get_2d_box(your_mesh))
 
-axes.set_xlim(*x_lim)
-axes.set_ylim(*y_lim)
+axes.set_xlim(*x_lim[::-1])
+axes.set_ylim(*y_lim[::-1])
 
 # Show the plot to the screen
 plt.show()
