@@ -39,8 +39,8 @@ def set_axes_equal(ax):
 
 
 def get_limit(mesh, column, scale=.1):
-    min_val = np.hstack((mesh.v0[:, column].min(), mesh.v1[:, column].min(), mesh.v2[:, column].min())).min()
-    max_val = np.hstack((mesh.v0[:, column].max(), mesh.v1[:, column].max(), mesh.v2[:, column].max())).max()
+    min_val = mesh.vectors[:, :, column].reshape(-1).min(axis=0)
+    max_val = mesh.vectors[:, :, column].reshape(-1).max(axis=0)
 
     percent = (max_val - min_val) * scale
     min_val -= percent
@@ -50,7 +50,7 @@ def get_limit(mesh, column, scale=.1):
 
 
 def get_2d_bounding_box(mesh):
-    x, y, z = get_limit(mesh, 0, 0), get_limit(mesh, 1, 0), get_limit(mesh, 2, 0)
+    x, y = get_limit(mesh, 0, 0), get_limit(mesh, 1, 0)
 
     x_min = x[1]
     y_min = y[1]
