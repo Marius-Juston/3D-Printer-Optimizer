@@ -1,3 +1,5 @@
+import math
+
 import numpy as np
 from matplotlib import pyplot as plt
 from matplotlib.axes import Axes
@@ -72,37 +74,48 @@ def get_2d_box(mesh):
 
 
 # Load the STL files and add the vectors to the plot
-your_mesh = Mesh.from_file('Body Cap.stl')
+your_mesh: Mesh = Mesh.from_file('Body Cap.stl')
 
-# Create a new plot
-figure = plt.figure()
-axes: Axes3D = Axes3D(figure)
+steps = 10
 
-poly = Poly3DCollection(your_mesh.vectors)
-poly.set_edgecolor('black')
-axes.add_collection3d(poly)
+for x in range(steps):
+    for y in range(steps):
+        for z in range(steps):
+            matrix = x, y, z
+            print(f"X: {x}, Y: {y}, Z: {z}")
+            your_mesh.rotate((1, 0, 0), 2 * math.pi / steps)
+            # your_mesh.rotate((0, 1, 0), 2 * math.pi / steps)
+            # your_mesh.rotate((0, 0, 1), 2 * math.pi / steps)
 
-x_lim, y_lim, z_lim = get_limit(your_mesh, 0), get_limit(your_mesh, 1), get_limit(your_mesh, 2)
+            # Create a new plot
+            figure = plt.figure()
+            axes: Axes3D = Axes3D(figure)
 
-# Auto scale to the mesh size
-axes.set_xlim(*x_lim)
-axes.set_ylim(*y_lim)
-axes.set_zlim(*z_lim)
-set_axes_equal(axes)
+            poly = Poly3DCollection(your_mesh.vectors)
+            poly.set_edgecolor('black')
+            axes.add_collection3d(poly)
 
-out = np.array(list(zip(your_mesh.v0[:, :2], your_mesh.v1[:, :2], your_mesh.v2[:, :2])))
+            x_lim, y_lim, z_lim = get_limit(your_mesh, 0), get_limit(your_mesh, 1), get_limit(your_mesh, 2)
 
-fig: Figure = plt.figure()
-axes: Axes = fig.gca()
-poly = PolyCollection(out)
-poly.set_edgecolor('black')
+            # Auto scale to the mesh size
+            axes.set_xlim(*x_lim)
+            axes.set_ylim(*y_lim)
+            axes.set_zlim(*z_lim)
+            set_axes_equal(axes)
 
-axes.add_collection(poly)
-axes.add_patch(get_2d_box(your_mesh))
+            out = your_mesh.vectors[:, :, :2]
 
-axes.set_xlim(*x_lim[::-1])
-axes.set_ylim(*y_lim[::-1])
-axes.set_aspect('equal')
+            fig: Figure = plt.figure()
+            axes: Axes = fig.gca()
+            poly = PolyCollection(out)
+            poly.set_edgecolor('black')
+
+            axes.add_collection(poly)
+            axes.add_patch(get_2d_box(your_mesh))
+
+            axes.set_xlim(*x_lim[::-1])
+            axes.set_ylim(*y_lim[::-1])
+            axes.set_aspect('equal')
 
 # Show the plot to the screen
 plt.show()
